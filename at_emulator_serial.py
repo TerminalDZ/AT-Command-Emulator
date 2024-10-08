@@ -1,214 +1,272 @@
 import serial
+import threading
 import time
-from typing import Tuple, Optional
+import logging
+from typing import Optional, Tuple
 
-class ATResponse:
-    OK = "OK"
-    CMS_ERROR_304 = "+CMS ERROR: 304"
-    CMS_ERROR_305 = "+CMS ERROR: 305"
-    NO_CARRIER = "NO CARRIER"
-    ERROR = "ERROR"
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+class ATCommandError(Exception):
+  """Custom exception for AT command errors."""
+  pass
 
 class ATEmulator:
-    def __init__(self):
-        self.s_registers = [
-            0, 0, 43, 13, 10, 8, 2, 50, 2, 6, 14, 95, 50
-        ] + [0] * 5 + [0] + [0] * 6 + [5, 1] + [0] * 3 + [0] + [0] * 6 + [0, 20]
-        self.current_s_register = 0
-        self.echo = True
-        self.verbose = True
-        self.quiet = False
-        self.result_code_format = 4
-        self.cnmi_mode = 1
-        self.cnmi_mt = 2
-        self.cnmi_bm = 0
-        self.cnmi_ds = 1
-        self.cnmi_bfr = 0
-        self.sms_mode = 1
-        self.gprs_attached = 0
-        self.message_reference = 0
-        self.network_registration = 0
-        self.sim_info = {
-            "sim_name": "Ooredoo",
-            "phone_number": "+213123456789",
-            "ccid": "8988303000005737285",
-            "imei": "359123456789012",
-            "imsi": "310260123456789",
-            "manufacturer": "U-Blox",
-            "model": "SARA-R410M",
-            "firmware": "M10.00.01",
-            "balance": 1500
-        }
-        self.sms_inbox = []
-        self.sms_outbox = []
+  """AT Command Emulator class."""
 
-    def process_command(self, command: str) -> Tuple[Optional[str], int]:
-        if not command:
-            return None, 0
-        command = command.upper().strip()
-        if not command.startswith("AT"):
-            return None, ATResponse.ERROR
-        parts = command[2:].split(";")
-        response = None
-        error = 0
-        for part in parts:
-            response, error = self._process_single_command(part)
-            if error != 0:
-                break
-        return response, error
+  def __init__(self, port: str, baudrate: int = 115200):
+      """
+      Initialize the emulator.
+      :param port: Serial port to listen on.
+      :param baudrate: Baud rate for serial communication.
+      """
+      self.port = port
+      self.baudrate = baudrate
+      self.serial_port = None
+      self.running = False
+      self.echo = True
+      self.verbose = True
+      self.quiet = False
+      self.sms_mode = 1  # 0: PDU mode, 1: Text mode
+      self.command_handlers = {
+          'AT': self.handle_at,
+          'ATE0': self.handle_ate0,
+          'ATE1': self.handle_ate1,
+          'ATI': self.handle_ati,
+          'AT+GMI': self.handle_gmi,
+          'AT+GMM': self.handle_gmm,
+          'AT+GMR': self.handle_gmr,
+          'AT+CGMI': self.handle_gmi,
+          'AT+CGMM': self.handle_gmm,
+          'AT+CGMR': self.handle_gmr,
+          'AT+CSQ': self.handle_csq,
+          'AT+CREG?': self.handle_creg,
+          'AT+COPS?': self.handle_cops,
+          'AT+CMGF': self.handle_cmgf,
+          'AT+CMGS': self.handle_cmgs,
+          'AT+CMGR': self.handle_cmgr,
+          'AT+CMGL': self.handle_cmgl,
+          'AT+CMGD': self.handle_cmgd,
+          'AT+CUSD': self.handle_cusd,
+          'AT+CGATT': self.handle_cgatt,
+          'AT+CIPSTATUS': self.handle_cipstatus,
+          'AT+CIPSTART': self.handle_cipstart,
+          'AT+CIPCLOSE': self.handle_cipclose,
+      }
+      self.simulated_state = {
+          'manufacturer': 'Generic',
+          'model': 'Modem 1.0',
+          'revision': '1.0.0',
+          'imei': '123456789012345',
+          'imsi': '310150123456789',
+          'operator': 'Test Network',
+          'signal_strength': 15,
+          'registration_status': 1,
+          'sms_storage': [],
+          'gprs_attached': 0,
+          'ip_status': 'IP INITIAL',
+          # Add more simulated states here...
+      }
 
-    def _process_single_command(self, command: str) -> Tuple[Optional[str], int]:
-        if not command:
-            return None, 0
-        if command == "":
-            return None, 0
-        elif command == "I":
-            return "C102", 0
-        elif command in ["I1", "I2"]:
-            return "63656C6572736D73", 0
-        elif command == "I3" or command == "+CGMI":
-            return self.sim_info["manufacturer"], 0
-        elif command.startswith("+CMGF"):
-            if command == "+CMGF=1":
-                self.sms_mode = 1
-                return None, 0
-            elif command == "+CMGF=0":
-                self.sms_mode = 0
-                return None, 0
-            else:
-                return None, ATResponse.ERROR
-        elif command == "I4" or command == "+CGMM":
-            return self.sim_info["model"], 0
-        elif command == "I5" or command == "+CGMR":
-            return self.sim_info["firmware"], 0
-        elif command == "+CIMI":
-            return self.sim_info["imsi"], 0
-        elif command == "+CCID":
-            return self.sim_info["ccid"], 0
-        elif command == "+CGSN":
-            return self.sim_info["imei"], 0
-        elif command == "+CNUM":
-            return self.sim_info["phone_number"], 0
-        elif command == "+COPS?":
-            return f'+COPS: 0,0,"{self.sim_info["sim_name"]}",2', 0
-        elif command == "E0":
-            self.echo = False
-            return None, 0
-        elif command == "E1":
-            self.echo = True
-            return None, 0
-        elif command == "V0":
-            self.verbose = False
-            return None, 0
-        elif command == "V1":
-            self.verbose = True
-            return None, 0
-        elif command == "Q0":
-            self.quiet = False
-            return None, 0
-        elif command == "Q1":
-            self.quiet = True
-            return None, 0
-        elif command.startswith("S"):
-            return self._handle_s_register(command)
-        elif command.startswith("+CMGS"):
-            return self._handle_sms_command(command)
-        elif command.startswith("*") and command.endswith("#"):
-            return self._handle_ussd_command(command)
-        return None, ATResponse.ERROR
+  def start(self):
+      """Start the emulator and open the serial port."""
+      try:
+          self.serial_port = serial.Serial(self.port, self.baudrate, timeout=1)
+          self.running = True
+          logging.info(f"Serial port {self.port} opened at baud rate {self.baudrate}.")
+          self.listen()
+      except serial.SerialException as e:
+          logging.error(f"Error opening serial port: {e}")
 
-    def _handle_s_register(self, command: str) -> Tuple[Optional[str], int]:
-        if len(command) < 2:
-            return None, ATResponse.ERROR
-        if command[1:].isdigit():
-            reg_num = int(command[1:])
-            if 0 <= reg_num < len(self.s_registers):
-                self.current_s_register = reg_num
-                return None, 0
-        if "?" in command:
-            parts = command.split("?")
-            reg_num = int(parts[0][1:]) if parts[0][1:].isdigit() else self.current_s_register
-            if 0 <= reg_num < len(self.s_registers):
-                return str(self.s_registers[reg_num]), 0
-        if "=" in command:
-            parts = command.split("=")
-            reg_num = int(parts[0][1:]) if parts[0][1:].isdigit() else self.current_s_register
-            if len(parts) > 1 and parts[1].isdigit():
-                value = int(parts[1])
-                if 0 <= reg_num < len(self.s_registers) and 0 <= value <= 255:
-                    self.s_registers[reg_num] = value
-                    return None, 0
-        return None, ATResponse.ERROR
+  def stop(self):
+      """Stop the emulator and close the serial port."""
+      self.running = False
+      if self.serial_port and self.serial_port.is_open:
+          self.serial_port.close()
+          logging.info("Serial port closed.")
 
-    def _handle_sms_command(self, command: str) -> Tuple[Optional[str], int]:
-        if command == "+CMGS=?":
-            return None, 0
-        if command.startswith("+CMGS="):
-            try:
-                length = int(command[6:])
-                if self.sms_mode == 0 and not (7 <= length <= 160):
-                    return None, ATResponse.CMS_ERROR_304
-                if self.sms_mode == 1 and length <= 0:
-                    return None, ATResponse.CMS_ERROR_305
-                self.message_reference = (self.message_reference + 1) % 256
-                if self.message_reference == 0:
-                    self.message_reference = 1
-                return f"+CMGS: {self.message_reference}", 0
-            except ValueError:
-                return None, ATResponse.ERROR
-        return None, ATResponse.ERROR
+  def listen(self):
+      """Listen for incoming commands and process them."""
+      thread = threading.Thread(target=self.read_loop, daemon=True)
+      thread.start()
 
-    def _handle_ussd_command(self, command: str) -> Tuple[Optional[str], int]:
-        if command == "*200#":
-            return f"Your current balance is {self.sim_info['balance']} DZD", 0
-        elif command == "*123#":
-            return "50 minutes remaining", 0
-        return None, ATResponse.ERROR
+  def read_loop(self):
+      """Read data from the serial port in a loop."""
+      buffer = ''
+      while self.running:
+          if self.serial_port.in_waiting:
+              data = self.serial_port.read(self.serial_port.in_waiting).decode('utf-8', errors='ignore')
+              buffer += data
+              if '\r' in buffer or '\n' in buffer:
+                  commands = buffer.strip().split('\r')
+                  for cmd in commands:
+                      if cmd:
+                          self.process_command(cmd.strip())
+                  buffer = ''
+          time.sleep(0.1)
+
+  def process_command(self, command: str):
+      """Process a single AT command."""
+      logging.info(f"Received command: {command}")
+      if self.echo:
+          self.send_response(command)
+      handler = self.command_handlers.get(command.split('=')[0].split('?')[0], self.handle_unknown)
+      try:
+          response = handler(command)
+          if response is not None:
+              self.send_response(response)
+          if not self.quiet:
+              self.send_response('OK')
+      except ATCommandError as e:
+          self.send_response(f"ERROR: {e}")
+      except Exception as e:
+          logging.error(f"Unexpected error: {e}")
+          self.send_response('ERROR')
+
+  def send_response(self, response: str):
+      """Send a response back over the serial port."""
+      if self.verbose:
+          response = f"\r\n{response}\r\n"
+      else:
+          response = f"{response}\r\n"
+      self.serial_port.write(response.encode('utf-8'))
+
+  # Command handlers
+
+  def handle_at(self, command: str):
+      """Handle basic AT command."""
+      pass  # No action needed, OK will be sent automatically
+
+  def handle_ate0(self, command: str):
+      """Turn off echo."""
+      self.echo = False
+
+  def handle_ate1(self, command: str):
+      """Turn on echo."""
+      self.echo = True
+
+  def handle_ati(self, command: str):
+      """Display device information."""
+      return f"{self.simulated_state['manufacturer']} {self.simulated_state['model']}"
+
+  def handle_gmi(self, command: str):
+      """Display manufacturer name."""
+      return self.simulated_state['manufacturer']
+
+  def handle_gmm(self, command: str):
+      """Display device model."""
+      return self.simulated_state['model']
+
+  def handle_gmr(self, command: str):
+      """Display firmware revision."""
+      return self.simulated_state['revision']
+
+  def handle_csq(self, command: str):
+      """Display signal strength."""
+      return f"+CSQ: {self.simulated_state['signal_strength']},99"
+
+  def handle_creg(self, command: str):
+      """Display network registration status."""
+      return f"+CREG: 0,{self.simulated_state['registration_status']}"
+
+  def handle_cops(self, command: str):
+      """Display current operator."""
+      return f'+COPS: 0,0,"{self.simulated_state["operator"]}"'
+
+  def handle_cmgf(self, command: str):
+      """Set or display SMS message format."""
+      if '=' in command:
+          mode = command.split('=')[1]
+          if mode in ['0', '1']:
+              self.sms_mode = int(mode)
+          else:
+              raise ATCommandError("Invalid mode")
+      else:
+          return f"+CMGF: {self.sms_mode}"
+
+  def handle_cmgs(self, command: str):
+      """Send SMS message."""
+      if self.sms_mode == 1:
+          # Text mode
+          self.send_response("> ")  # Prompt for input
+          message = self.read_sms_message()
+          self.simulated_state['sms_storage'].append({'status': 'SENT', 'message': message})
+          return '+CMGS: 1'  # Return message reference
+      else:
+          # PDU mode
+          raise ATCommandError("PDU mode not supported in this emulator")
+
+  def handle_cmgr(self, command: str):
+      """Read SMS message."""
+      # Implement appropriate logic to read messages from storage
+      return '+CMGR: "REC UNREAD","1234567890",,"21/09/01,12:34:56+00"\r\nHello, World!'
+
+  def handle_cmgl(self, command: str):
+      """List SMS messages."""
+      # Implement appropriate logic to list messages
+      return '+CMGL: 1,"REC UNREAD","1234567890",,"21/09/01,12:34:56+00"\r\nHello, World!'
+
+  def handle_cmgd(self, command: str):
+      """Delete SMS message."""
+      # Implement appropriate logic to delete messages
+      pass
+
+  def handle_cusd(self, command: str):
+      """Execute USSD command."""
+      # Handle USSD commands
+      return '+CUSD: 0,"Your balance is 10.00 USD",15'
+
+  def handle_cgatt(self, command: str):
+      """Attach or detach from GPRS service."""
+      if '=' in command:
+          state = command.split('=')[1]
+          if state in ['0', '1']:
+              self.simulated_state['gprs_attached'] = int(state)
+          else:
+              raise ATCommandError("Invalid state")
+      else:
+          return f"+CGATT: {self.simulated_state['gprs_attached']}"
+
+  def handle_cipstatus(self, command: str):
+      """Display IP status."""
+      return f"STATE: {self.simulated_state['ip_status']}"
+
+  def handle_cipstart(self, command: str):
+      """Start TCP/IP connection."""
+      self.simulated_state['ip_status'] = 'CONNECTED'
+      return 'OK'
+
+  def handle_cipclose(self, command: str):
+      """Close TCP/IP connection."""
+      self.simulated_state['ip_status'] = 'IP INITIAL'
+      return 'CLOSE OK'
+
+  def handle_unknown(self, command: str):
+      """Handle unknown commands."""
+      raise ATCommandError("Command not supported")
+
+  def read_sms_message(self) -> str:
+      """Read SMS message input from the user."""
+      message = ''
+      while True:
+          data = self.serial_port.read(self.serial_port.in_waiting or 1).decode('utf-8', errors='ignore')
+          if data:
+              message += data
+              if '\x1a' in message:  # Ctrl+Z to end input
+                  message = message.replace('\x1a', '')
+                  break
+      return message.strip()
 
 def main():
-    emulator = ATEmulator()
-    try:
-        ser = serial.Serial('COM14', 115200, timeout=1)
-        buffer = ""
-        while True:
-            if ser.in_waiting:
-                char = ser.read().decode('utf-8', errors='ignore')
-                if char == '\r' or char == '\n':
-                    if buffer:
-                        if emulator.echo:
-                            ser.write(f"{buffer}\r\n".encode('utf-8'))
-                        response, error = emulator.process_command(buffer)
-                        if not emulator.quiet:
-                            if response:
-                                if emulator.verbose:
-                                    ser.write(f"\r\n{response}\r\n".encode('utf-8'))
-                                else:
-                                    ser.write(f"{response}\r\n".encode('utf-8'))
-                            if emulator.verbose:
-                                error_msg = ATResponse.ERROR if error != 0 else ATResponse.OK
-                                ser.write(f"\r\n{error_msg}\r\n".encode('utf-8'))
-                            else:
-                                ser.write(f"{error}\r\n".encode('utf-8'))
-                        buffer = ""
-                else:
-                    buffer += char
-            time.sleep(0.01)
-    except serial.SerialException as e:
-        print(f"Error opening serial port: {e}")
-    finally:
-        if 'ser' in locals():
-            ser.close()
+  emulator = ATEmulator(port='COM14', baudrate=115200)
+  try:
+      emulator.start()
+      while True:
+          time.sleep(1)
+  except KeyboardInterrupt:
+      logging.info("Stopping emulator.")
+  finally:
+      emulator.stop()
 
 if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description='AT Command Emulator (Serial)')
-    parser.add_argument('--port', type=str, default='COM14', help='Serial port to use')
-    parser.add_argument('--baudrate', type=int, default=115200, help='Baudrate for serial communication')
-    args = parser.parse_args()
-    try:
-        import serial
-    except ImportError:
-        print("pyserial library is required. Please install it using:")
-        print("pip install pyserial")
-        exit(1)
-    main()
+  main()
