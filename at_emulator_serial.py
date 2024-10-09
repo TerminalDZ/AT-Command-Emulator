@@ -41,7 +41,7 @@ class ATEmulator:
           'AT+CGMR': self.handle_gmr,
           'AT+CSQ': self.handle_csq,
           'AT+CREG?': self.handle_creg,
-          'AT+COPS?': self.handle_cops,
+          'AT+COPS?': self.handle_cops,  # Ensure this is correctly registered
           'AT+CMGF': self.handle_cmgf,
           'AT+CMGS': self.handle_cmgs,
           'AT+CMGR': self.handle_cmgr,
@@ -59,7 +59,7 @@ class ATEmulator:
           'revision': '1.0.0',
           'imei': '123456789012345',
           'imsi': '310150123456789',
-          'operator': 'Test Network',
+          'operator': 'Mobilis',
           'signal_strength': 15,
           'registration_status': 1,
           'sms_storage': [],
@@ -110,7 +110,9 @@ class ATEmulator:
       logging.info(f"Received command: {command}")
       if self.echo:
           self.send_response(command)
-      handler = self.command_handlers.get(command.split('=')[0].split('?')[0], self.handle_unknown)
+      # Correctly handle commands with '?' by splitting on '?' first
+      base_command = command.split('=')[0].split('?')[0] + ('?' if '?' in command else '')
+      handler = self.command_handlers.get(base_command, self.handle_unknown)
       try:
           response = handler(command)
           if response is not None:
@@ -171,7 +173,7 @@ class ATEmulator:
 
   def handle_cops(self, command: str):
       """Display current operator."""
-      return f'+COPS: 0,0,"{self.simulated_state["operator"]}"'
+      return f'+COPS: 0,0,"{self.simulated_state["operator"]}",6'
 
   def handle_cmgf(self, command: str):
       """Set or display SMS message format."""
@@ -258,7 +260,7 @@ class ATEmulator:
       return message.strip()
 
 def main():
-  emulator = ATEmulator(port='COM14', baudrate=115200)
+  emulator = ATEmulator(port='COM1', baudrate=9600)
   try:
       emulator.start()
       while True:
