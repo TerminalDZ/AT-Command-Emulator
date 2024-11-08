@@ -1,0 +1,70 @@
+2024-11-01 00:15:09,333 - DEBUG - [send_at_command.py:77] - Port detected: COM9 - Standard Serial over Bluetooth link (COM9)
+2024-11-01 00:15:09,333 - DEBUG - [send_at_command.py:77] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:15:09,334 - DEBUG - [send_at_command.py:77] - Port detected: COM10 - Standard Serial over Bluetooth link (COM10)
+2024-11-01 00:15:09,334 - DEBUG - [send_at_command.py:77] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:34:47,403 - DEBUG - [send_at_command.py:77] - Port detected: COM9 - Standard Serial over Bluetooth link (COM9)
+2024-11-01 00:34:47,404 - DEBUG - [send_at_command.py:77] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:34:47,405 - DEBUG - [send_at_command.py:77] - Port detected: COM10 - Standard Serial over Bluetooth link (COM10)
+2024-11-01 00:34:47,405 - DEBUG - [send_at_command.py:77] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:34:59,240 - ERROR - [send_at_command.py:175] - Error in communicating with port COM9: could not open port 'COM9': OSError(22, 'The semaphore timeout period has expired.', None, 121)
+Type: SerialException
+2024-11-01 00:38:19,258 - DEBUG - [send_at_command.py:78] - Port detected: COM9 - Standard Serial over Bluetooth link (COM9)
+2024-11-01 00:38:19,259 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:38:19,259 - DEBUG - [send_at_command.py:78] - Port detected: COM10 - Standard Serial over Bluetooth link (COM10)
+2024-11-01 00:38:19,259 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:38:23,098 - INFO - [send_at_command.py:289] - Program terminated by user
+2024-11-01 00:40:39,004 - DEBUG - [send_at_command.py:78] - Port detected: COM9 - Standard Serial over Bluetooth link (COM9)
+2024-11-01 00:40:39,005 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:40:39,005 - DEBUG - [send_at_command.py:78] - Port detected: COM10 - Standard Serial over Bluetooth link (COM10)
+2024-11-01 00:40:39,005 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:40:51,487 - ERROR - [send_at_command.py:111] - Attempt 1: Failed to open port COM9: could not open port 'COM9': OSError(22, 'The semaphore timeout period has expired.', None, 121)
+2024-11-01 00:40:58,617 - ERROR - [send_at_command.py:111] - Attempt 2: Failed to open port COM9: could not open port 'COM9': OSError(22, 'The semaphore timeout period has expired.', None, 121)
+2024-11-01 00:41:05,743 - ERROR - [send_at_command.py:111] - Attempt 3: Failed to open port COM9: could not open port 'COM9': OSError(22, 'The semaphore timeout period has expired.', None, 121)
+2024-11-01 00:41:07,744 - ERROR - [send_at_command.py:114] - All attempts to open port COM9 failed.
+2024-11-01 00:41:07,744 - ERROR - [send_at_command.py:209] - Error in sending AT command: Failed to open port COM9 after multiple attempts
+Type: SerialPortError
+2024-11-01 00:41:13,338 - DEBUG - [send_at_command.py:78] - Port detected: COM9 - Standard Serial over Bluetooth link (COM9)
+2024-11-01 00:41:13,339 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:41:13,339 - DEBUG - [send_at_command.py:78] - Port detected: COM10 - Standard Serial over Bluetooth link (COM10)
+2024-11-01 00:41:13,339 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:41:18,515 - INFO - [send_at_command.py:108] - Successfully opened port: COM3
+2024-11-01 00:42:13,037 - DEBUG - [send_at_command.py:78] - Port detected: COM9 - Standard Serial over Bluetooth link (COM9)
+2024-11-01 00:42:13,037 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:42:13,037 - DEBUG - [send_at_command.py:78] - Port detected: COM10 - Standard Serial over Bluetooth link (COM10)
+2024-11-01 00:42:13,037 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:42:25,989 - INFO - [send_at_command.py:108] - Successfully opened port: COM10
+2024-11-01 00:44:59,933 - DEBUG - [send_at_command.py:78] - Port detected: COM9 - Standard Serial over Bluetooth link (COM9)
+2024-11-01 00:44:59,933 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:44:59,933 - DEBUG - [send_at_command.py:78] - Port detected: COM10 - Standard Serial over Bluetooth link (COM10)
+2024-11-01 00:44:59,934 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:45:07,239 - INFO - [send_at_command.py:292] - Program terminated by user
+2024-11-01 00:45:08,346 - DEBUG - [send_at_command.py:78] - Port detected: COM9 - Standard Serial over Bluetooth link (COM9)
+2024-11-01 00:45:08,346 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:45:08,348 - DEBUG - [send_at_command.py:78] - Port detected: COM10 - Standard Serial over Bluetooth link (COM10)
+2024-11-01 00:45:08,348 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:45:09,615 - INFO - [send_at_command.py:292] - Program terminated by user
+2024-11-01 00:45:10,566 - DEBUG - [send_at_command.py:78] - Port detected: COM9 - Standard Serial over Bluetooth link (COM9)
+2024-11-01 00:45:10,566 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:45:10,567 - DEBUG - [send_at_command.py:78] - Port detected: COM10 - Standard Serial over Bluetooth link (COM10)
+2024-11-01 00:45:10,567 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:45:24,313 - ERROR - [send_at_command.py:111] - Attempt 1: Failed to open port COM9: could not open port 'COM9': OSError(22, 'The semaphore timeout period has expired.', None, 121)
+2024-11-01 00:45:31,438 - INFO - [send_at_command.py:292] - Program terminated by user
+2024-11-01 00:45:38,806 - DEBUG - [send_at_command.py:78] - Port detected: COM9 - Standard Serial over Bluetooth link (COM9)
+2024-11-01 00:45:38,806 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:45:38,806 - DEBUG - [send_at_command.py:78] - Port detected: COM10 - Standard Serial over Bluetooth link (COM10)
+2024-11-01 00:45:38,807 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:45:43,475 - INFO - [send_at_command.py:292] - Program terminated by user
+2024-11-01 00:45:45,549 - DEBUG - [send_at_command.py:78] - Port detected: COM9 - Standard Serial over Bluetooth link (COM9)
+2024-11-01 00:45:45,549 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:45:45,550 - DEBUG - [send_at_command.py:78] - Port detected: COM10 - Standard Serial over Bluetooth link (COM10)
+2024-11-01 00:45:45,550 - DEBUG - [send_at_command.py:78] - Port detected: COM3 - Standard Serial over Bluetooth link (COM3)
+2024-11-01 00:45:48,669 - INFO - [send_at_command.py:292] - Program terminated by user
+2024-11-01 00:46:45,842 - WARNING - [send_at_command.py:57] - No serial ports detected on this system
+2024-11-01 00:46:49,604 - WARNING - [send_at_command.py:57] - No serial ports detected on this system
+2024-11-01 00:46:50,300 - WARNING - [send_at_command.py:57] - No serial ports detected on this system
+2024-11-01 01:05:01,642 - WARNING - [send_at_command.py:57] - No serial ports detected on this system
+2024-11-01 01:05:03,103 - WARNING - [send_at_command.py:57] - No serial ports detected on this system
+2024-11-01 01:05:04,008 - WARNING - [send_at_command.py:57] - No serial ports detected on this system
+2024-11-01 11:38:37,703 - WARNING - [send_at_command.py:57] - No serial ports detected on this system
+2024-11-01 11:38:39,282 - WARNING - [send_at_command.py:57] - No serial ports detected on this system
+2024-11-01 11:44:12,022 - WARNING - [send_at_command.py:57] - No serial ports detected on this system

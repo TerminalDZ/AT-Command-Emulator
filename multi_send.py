@@ -1,7 +1,7 @@
 import serial
 import time
 
-port = 'COM18'  
+port = 'COM10'  
 baudrate = 9600
 
 # قائمة الأوامر التي سيتم إرسالها
@@ -12,8 +12,7 @@ commands = [
   #'AT+CSCS="GSM"',  # تعيين مجموعة الأحرف
   #'AT+CUSD=1,"*100#"',  # استبدل *100# بكود USSD آخر
   #  'AT+CUSD=1,"*500#",15'
-   'AT+COPS=2',
-'AT+COPS=?'
+   'AT'
 ]
 
 with serial.Serial(port, baudrate, timeout=1) as ser:
